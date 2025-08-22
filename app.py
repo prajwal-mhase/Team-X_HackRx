@@ -9,6 +9,9 @@ import google.generativeai as genai
 # ✅ Configure Gemini API key
 genai.configure(api_key=GEMINI_API_KEY)
 
+# ====== CONFIG ======
+MAX_CHARS_PER_CHUNK = 8000  # Safe chunk size for Gemini-2.0-flash
+
 # ✅ Extract text from PDF
 def extract_pdf_text(uploaded_file):
     try:
@@ -23,6 +26,20 @@ def extract_pdf_text(uploaded_file):
         st.error(f"Error reading PDF: {str(e)}")
         return ""
 
+# ✅ Chunk text into safe pieces for LLM
+def chunk_text(text, max_chars=MAX_CHARS_PER_CHUNK):
+    words = text.split()
+    chunks, current_chunk = [], ""
+    for word in words:
+        if len(current_chunk) + len(word) + 1 <= max_chars:
+            current_chunk += (" " if current_chunk else "") + word
+        else:
+            chunks.append(current_chunk)
+            current_chunk = word
+    if current_chunk:
+        chunks.append(current_chunk)
+    return chunks
+
 # ✅ Extract JSON from LLM response
 def extract_json_from_text(text):
     try:
@@ -34,19 +51,40 @@ def extract_json_from_text(text):
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}")
 
-# ✅ Query Gemini with structured prompt
-def ask_llm(query, document_text):
+# ✅ Ask Gemini for partial analysis of a chunk
+def analyze_chunk(query, chunk_text, chunk_index, total_chunks):
     prompt = f"""
 You are an AI insurance analyst.
 
 User Query:
 {query}
 
-Policy Document:
-{document_text}
+Policy Document (Part {chunk_index+1} of {total_chunks}):
+{chunk_text}
+
+Your task for this part:
+- Identify any clauses, coverage, or exclusions relevant to the claim.
+- Do NOT make a final approval/rejection decision yet.
+- Summarize key findings for this chunk only.
+Return findings as plain text.
+"""
+    model = genai.GenerativeModel("gemini-2.0-flash")
+    response = model.generate_content(prompt, generation_config={"temperature": 0.0})
+    return response.text.strip()
+
+# ✅ Final decision making after merging chunk summaries
+def ask_llm(query, merged_summary):
+    prompt = f"""
+You are an AI insurance analyst.
+
+User Query:
+{query}
+
+Summarized Relevant Policy Information:
+{merged_summary}
 
 Your task:
-1. Determine if the claim should be approved or rejected.
+1. Decide if the claim should be approved or rejected.
 2. Specify the claim amount (if applicable).
 3. Justify the decision.
 
@@ -99,9 +137,20 @@ def main():
             return
 
         if st.button("🚀 Analyze Claim Now"):
-            with st.spinner("🤖 Processing claim with Gemini..."):
+            with st.spinner("🔍 Splitting and analyzing document..."):
+                chunks = chunk_text(doc_text)
+                st.info(f"Document split into {len(chunks)} chunk(s) for analysis.")
+
+                partial_findings = []
+                for idx, chunk in enumerate(chunks):
+                    finding = analyze_chunk(query, chunk, idx, len(chunks))
+                    partial_findings.append(f"--- Findings from Part {idx+1} ---\n{finding}")
+
+                merged_summary = "\n\n".join(partial_findings)
+
+            with st.spinner("🤖 Making final decision with Gemini..."):
                 try:
-                    raw = ask_llm(query, doc_text)
+                    raw = ask_llm(query, merged_summary)
                     result = extract_json_from_text(raw)
 
                     st.success("✅ Claim Analysis Complete")
