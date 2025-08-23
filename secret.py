@@ -1,2 +1,4 @@
-#OPENAI_API_KEY = "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"
-GEMINI_API_KEY = "AIzaSyA4w39zElFzb9ikThnWJMh0Bt8mlikqusA"
+# OPENAI_API_KEY = "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"
+GEMINI_API_KEY = "AIzaSyCbzg5t4SldxNFPUp5bQf3t2FzENjn8c8Y"
+
+
