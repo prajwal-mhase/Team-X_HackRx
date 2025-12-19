@@ -1,5 +1,3 @@
-## ✅ Here's a ready-to-use `README.md` for your app:
-
 # 📑 Insurance Claim Analyzer – HackRx 6.0
 
 An AI-powered tool to **analyze and validate insurance claims** using uploaded policy documents and natural language queries.
