@@ -6,8 +6,8 @@ from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from google.genai.types import GenerateContentConfig
-from secret import GEMINI_API_KEY
-
+import streamlit as st
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # ✅ Initialize Gemini Client (Modern SDK)
 client = genai.Client(api_key=GEMINI_API_KEY)
 
