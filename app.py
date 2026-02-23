@@ -4,17 +4,15 @@ import json
 import re
 from io import BytesIO
 from secret import GEMINI_API_KEY
-import google.generativeai as genai
+from google import genai
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from google.api_core.exceptions import ResourceExhausted
 
-# ✅ Configure Gemini API key
 genai.configure(api_key=GEMINI_API_KEY)
 
-# ====== CONFIG ======
-MAX_CHARS_PER_CHUNK = 20000  # Safe chunk size for Gemini-2.0-flash-lite
+MAX_CHARS_PER_CHUNK = 20000  
 
-# ✅ Extract text from PDF
+#  Extract text from PDF
 def extract_pdf_text(uploaded_file):
     try:
         pdf_reader = PyPDF2.PdfReader(BytesIO(uploaded_file.read()))
@@ -28,7 +26,7 @@ def extract_pdf_text(uploaded_file):
         st.error(f"Error reading PDF: {str(e)}")
         return ""
 
-# ✅ Chunk text into safe pieces for LLM
+#  Chunk text into safe pieces for LLM
 def chunk_text(text, max_chars=MAX_CHARS_PER_CHUNK):
     words = text.split()
     chunks, current_chunk = [], ""
@@ -42,7 +40,7 @@ def chunk_text(text, max_chars=MAX_CHARS_PER_CHUNK):
         chunks.append(current_chunk)
     return chunks
 
-# ✅ Extract JSON from LLM response
+#  Extract JSON from LLM response
 def extract_json_from_text(text):
     try:
         match = re.search(r"\{[\s\S]*\}", text)
@@ -53,7 +51,7 @@ def extract_json_from_text(text):
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}")
 
-# ✅ Ask Gemini for partial analysis of a chunk
+#  Ask Gemini for partial analysis of a chunk
 def analyze_chunk(query, chunk_text, chunk_index, total_chunks):
     prompt = f"""
 You are an AI insurance analyst.
@@ -84,7 +82,7 @@ Return findings as plain text.
     except ResourceExhausted:
         return f"--- Findings from Part {chunk_index+1} ---\n⚠️ Quota exceeded for this request."
 
-# ✅ Final decision making after merging chunk summaries
+#  Final decision making after merging chunk summaries
 def ask_llm(query, merged_summary):
     prompt = f"""
 You are an AI insurance analyst.
@@ -119,7 +117,7 @@ Return ONLY a JSON response in the following format (no markdown, no explanation
     )
     return response.text.strip()
 
-# ✅ Main UI
+#  Main UI
 def main():
     st.set_page_config(page_title="Insurance Claim Analyzer", page_icon="📄", layout="wide")
 
