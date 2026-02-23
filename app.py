@@ -8,13 +8,13 @@ from google import genai
 from google.genai.types import GenerateContentConfig
 import streamlit as st
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-# ✅ Initialize Gemini Client (Modern SDK)
+#  Initialize Gemini Client (Modern SDK)
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 MAX_CHARS_PER_CHUNK = 20000
 
 
-# ✅ Extract text from PDF
+#  Extract text from PDF
 def extract_pdf_text(uploaded_file):
     try:
         pdf_reader = PyPDF2.PdfReader(BytesIO(uploaded_file.read()))
@@ -29,7 +29,7 @@ def extract_pdf_text(uploaded_file):
         return ""
 
 
-# ✅ Chunk text into safe pieces
+#  Chunk text into safe pieces
 def chunk_text(text, max_chars=MAX_CHARS_PER_CHUNK):
     words = text.split()
     chunks, current_chunk = [], ""
@@ -44,7 +44,7 @@ def chunk_text(text, max_chars=MAX_CHARS_PER_CHUNK):
     return chunks
 
 
-# ✅ Extract JSON from response
+#  Extract JSON from response
 def extract_json_from_text(text):
     match = re.search(r"\{[\s\S]*\}", text)
     if not match:
@@ -52,7 +52,7 @@ def extract_json_from_text(text):
     return json.loads(match.group(0))
 
 
-# ✅ Analyze chunk
+#  Analyze chunk
 def analyze_chunk(query, chunk_text, chunk_index, total_chunks):
     prompt = f"""
 You are an AI insurance analyst.
@@ -77,7 +77,7 @@ Summarize findings only.
     return f"--- Findings from Part {chunk_index+1} ---\n{response.text}"
 
 
-# ✅ Final decision
+#  Final decision
 def ask_llm(query, merged_summary):
     prompt = f"""
 You are an AI insurance analyst.
@@ -106,7 +106,7 @@ Return ONLY JSON:
     return response.text
 
 
-# ✅ Main UI
+#  Main UI
 def main():
     st.set_page_config(page_title="Insurance Claim Analyzer", page_icon="📄", layout="wide")
 
@@ -180,11 +180,11 @@ def main():
                 st.markdown("### 🧠 Justification")
                 st.write(justification)
 
-                with st.expander("📦 Full Gemini JSON Output"):
+                with st.expander("📦 Full JSON Output"):
                     st.json(result)
 
             except Exception as e:
-                st.error("⚠️ Error processing Gemini response")
+                st.error("⚠️ Error processing response")
                 st.exception(e)
 
     else:
