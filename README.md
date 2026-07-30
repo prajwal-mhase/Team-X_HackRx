@@ -44,16 +44,6 @@ Then open `http://localhost:8501` in your browser.
 
 ---
 
-## 👥 Team
-
-* Prajwal Mhase
-* Ram Darekar
-* Payal Lanke
-* Gauri Lanke
-
-
----
-
 ## 🤝 Acknowledgments
 
 * HackRx 6.0 – Bajaj Finserv Health
